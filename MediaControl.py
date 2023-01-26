@@ -183,12 +183,12 @@ class CustomScale(Frame):
         self.slider_canvas.bind('<Button-2>', self.on_mid_mouse_btn)
 
         # KEY BINDINGS
-        self.bind('<Any-Key>', self.refresh)
-        self.bind('<MouseWheel>', self.refresh)
-        self.bind('<1>', self.refresh)
-        self.bind('<2>', self.refresh)
-        self.bind('<3>', self.refresh)
-        self.bind('<Motion>', self.refresh)
+        self.bind_all('<Any-Key>', self.refresh)
+        self.bind_all('<MouseWheel>', self.refresh)
+        self.bind_all('<1>', self.refresh)
+        self.bind_all('<2>', self.refresh)
+        self.bind_all('<3>', self.refresh)
+        self.bind_all('<Motion>', self.refresh)
 
     def round_rectangle(self, x1, y1, x2, y2, radius=5, **kwargs):
         points = [x1 + radius, y1, x1 + radius, y1,
@@ -267,8 +267,9 @@ class CustomScale(Frame):
 
 # CUSTOMISED PLAY/PAUSE MEDIA BUTTON
 class PlayPauseButton(Label):
-    def __init__(self, master, **kwargs):
+    def __init__(self, master, root, **kwargs):
         Label.__init__(self, master, **kwargs)
+        self.root = root
 
         # PLAY MEDIA BUTTON IMAGE SETTING
         play_img = Image.open(io.BytesIO(base64.b64decode(PLAY_BUTTON_IMG_DATA)))
@@ -311,8 +312,9 @@ class PlayPauseButton(Label):
 
 # CUSTOMISED MEDIA-NEXT BUTTON
 class NextMediaButton(Label):
-    def __init__(self, master, **kwargs):
+    def __init__(self, master, root, **kwargs):
         Label.__init__(self, master, **kwargs)
+        self.root = root
 
         # NEXT MEDIA BUTTON IMAGE SETTING
         next_img = Image.open(io.BytesIO(base64.b64decode(NEXT_BUTTON_IMG_DATA)))
@@ -321,15 +323,19 @@ class NextMediaButton(Label):
         self.config(image=self.next_img)
 
         #  KEY BINDINGS
-        self.bind('<Button-1>', lambda _=None: win32api.keybd_event(VK_MEDIA_NEXT_TRACK, 0, KEYEVENTF_EXTENDEDKEY, 0))
+        self.bind('<Button-1>', lambda _=None: [
+            win32api.keybd_event(VK_MEDIA_NEXT_TRACK, 0, KEYEVENTF_EXTENDEDKEY, 0),
+            self.root.scale.refresh(_)
+        ])
         self.bind('<Enter>', lambda _=None: self.config(bg='#28707d'))
         self.bind('<Leave>', lambda _=None: self.config(bg='#2e60ab'))
 
 
 # CUSTOMISED MEDIA-PREVIOUS BUTTON
 class PreviousMediaButton(Label):
-    def __init__(self, master, **kwargs):
+    def __init__(self, master, root, **kwargs):
         Label.__init__(self, master, **kwargs)
+        self.root = root
 
         # PREVIOUS MEDIA BUTTON IMAGE SETTING
         previous_img = Image.open(io.BytesIO(base64.b64decode(PREVIOUS_BUTTON_IMG_DATA)))
@@ -338,15 +344,19 @@ class PreviousMediaButton(Label):
         self.config(image=self.previous_img)
 
         # KEY BINDINGS
-        self.bind('<Button-1>', lambda _=None: win32api.keybd_event(VK_MEDIA_PREV_TRACK, 0, KEYEVENTF_EXTENDEDKEY, 0))
+        self.bind('<Button-1>', lambda _=None: [
+            win32api.keybd_event(VK_MEDIA_PREV_TRACK, 0, KEYEVENTF_EXTENDEDKEY, 0),
+            self.root.scale.refresh(_)
+        ])
         self.bind('<Enter>', lambda _=None: self.config(bg='#28707d'))
         self.bind('<Leave>', lambda _=None: self.config(bg='#2e60ab'))
 
 
 # CUSTOMISED VOLUME-UP BUTTON
 class VolumeUpButton(Label):
-    def __init__(self, master, **kwargs):
+    def __init__(self, master, root, **kwargs):
         Label.__init__(self, master, **kwargs)
+        self.root = root
 
         # VOLUME UP IMAGE SETTING
         volup_img = Image.open(io.BytesIO(base64.b64decode(VOLUP_BUTTON_IMG_DATA)))
@@ -355,15 +365,19 @@ class VolumeUpButton(Label):
         self.config(image=self.volup_img)
 
         # KEY BINDINGS
-        self.bind('<Button-1>', lambda _=None: win32api.keybd_event(VK_VOLUME_UP, 0, KEYEVENTF_EXTENDEDKEY, 0))
+        self.bind('<Button-1>', lambda _=None: [
+            win32api.keybd_event(VK_VOLUME_UP, 0, KEYEVENTF_EXTENDEDKEY, 0),
+            self.root.scale.refresh(_)
+        ])
         self.bind('<Enter>', lambda _=None: self.config(bg='#28707d'))
         self.bind('<Leave>', lambda _=None: self.config(bg='#2e60ab'))
 
 
 # CUSTOMISED VOLUME-DOWN BUTTON
 class VolumeDownButton(Label):
-    def __init__(self, master, **kwargs):
+    def __init__(self, master, root, **kwargs):
         Label.__init__(self, master, **kwargs)
+        self.root = root
 
         # VOLUME DOWN IMAGE SETTING
         voldown_img = Image.open(io.BytesIO(base64.b64decode(VOLDOWN_BUTTON_IMG_DATA)))
@@ -372,7 +386,10 @@ class VolumeDownButton(Label):
         self.config(image=self.voldown_img)
 
         # KEY BINDINGS
-        self.bind('<Button-1>', lambda _=None: win32api.keybd_event(VK_VOLUME_DOWN, 0, KEYEVENTF_EXTENDEDKEY, 0))
+        self.bind('<Button-1>', lambda _=None: [
+            win32api.keybd_event(VK_VOLUME_DOWN, 0, KEYEVENTF_EXTENDEDKEY, 0),
+            self.root.scale.refresh(_)
+        ])
         self.bind('<Enter>', lambda _=None: self.config(bg='#28707d'))
         self.bind('<Leave>', lambda _=None: self.config(bg='#2e60ab'))
 
@@ -420,11 +437,11 @@ class FloatingWindow(Tk):
 
         # # MAIN FRAME - MEDIA BUTTONS FRAME
         self.media_frame = Frame(self.main_frame, bg='#2e60ab')
-        self.previous_button = PreviousMediaButton(self.media_frame, bg='#2e60ab')
-        self.playpause_button = PlayPauseButton(self.media_frame, bg='#2e60ab')
-        self.next_button = NextMediaButton(self.media_frame, bg='#2e60ab')
-        self.volup_button = VolumeUpButton(self.media_frame, bg='#2e60ab')
-        self.voldown_button = VolumeDownButton(self.media_frame, bg='#2e60ab')
+        self.previous_button = PreviousMediaButton(self.media_frame, self, bg='#2e60ab')
+        self.playpause_button = PlayPauseButton(self.media_frame, self, bg='#2e60ab')
+        self.next_button = NextMediaButton(self.media_frame, self, bg='#2e60ab')
+        self.volup_button = VolumeUpButton(self.media_frame, self, bg='#2e60ab')
+        self.voldown_button = VolumeDownButton(self.media_frame, self, bg='#2e60ab')
 
         # MAIN FRAME - PACKINGS
         self.volume_frame.pack(side=TOP, fill=BOTH)
@@ -497,7 +514,7 @@ if __name__ == '__main__':
     interface = devices.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
     volume = cast(interface, POINTER(IAudioEndpointVolume))
     app = FloatingWindow()
-    app.geometry("260x85")
+    app.geometry("160x85")
     app.attributes('-topmost', True)
     app.geometry('+20+900')
     app.config(bg='#2e60ab')
